@@ -1,4 +1,9 @@
 import { app } from "./app.js";
+import {
+  createUser,
+  deleteUser,
+  getUsers,
+} from "./modules/users/users.controller.js";
 
 const port = 3000;
 
@@ -35,44 +40,12 @@ app.get("/", (req, res) => {
   </html>`);
 });
 
-let users = [
-  { id: "1", name: "Alice", email: "alice@example.com" },
-  { id: "2", name: "Bob", email: "bob@example.com" },
-];
+app.get("/users", getUsers);
 
-app.get("/users", (req, res) => {
-  res.status(200).json(users);
-  console.log(res);
-});
-
-app.post("/users", (req, res) => {
-  const { name, email } = req.body;
-
-  const newUser = {
-    id: String(users.length + 1),
-    name: name,
-    email: email,
-  };
-
-  users.push(newUser);
-
-  res.status(201).json(newUser);
-});
+app.post("/users", createUser);
 
 // The function inside is called Route Handler / Controller
-app.delete("/users/:id", (req, res) => {
-  const userId = req.params.id;
-
-  const userIndex = users.findIndex((user) => user.id === userId);
-
-  if (userIndex !== -1) {
-    users.splice(userIndex, 1);
-
-    res.status(200).send(`User with ID ${userId} deleted ✅`);
-  } else {
-    res.status(404).send("User not found.");
-  }
-});
+app.delete("/users/:id", deleteUser);
 
 app.listen(port, () => {
   console.log(`Server running on port: ${port} ✅`);
