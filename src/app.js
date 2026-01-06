@@ -2,8 +2,15 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { router as apiRoutes } from "./routes/index.js";
+import helmet from "helmet";
+import { limiter } from "./middlewares/rateLimiter.js";
 
 export const app = express();
+
+app.set("trust proxy", 1);
+
+// Global middleware
+app.use(helmet());
 
 const corsOptions = {
   origin: [
@@ -16,6 +23,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+app.use(limiter);
 
 app.use(express.json());
 
