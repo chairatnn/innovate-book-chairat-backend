@@ -6,9 +6,10 @@ export const getBook2 = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const doc = await Book.findById(id).select("-password");
+    const doc = await Book.findById(id);
     if (!doc) {
-      const error = new Error("User not found");
+      const error = new Error("Book not found");
+      error.status = 404;
       return next(error);
     }
     return res.status(200).json({
@@ -18,22 +19,39 @@ export const getBook2 = async (req, res, next) => {
   } catch (error) {
     error.status = 500;
     error.name = error.name || "DatabaseError";
-    error.message = error.message || "Failed to get a user";
+    error.message = error.message || "Failed to get a book";
     return next(error);
   }
 };
 
-// ✅ route handler: get all books from the database
+// ✅ route handler: get all books from the database (PAGINATION)
 export const getBooks2 = async (req, res, next) => {
   try {
-    const books = await Book.find().select("-password");
+     // 1. รับค่าจาก Query Params สำหรับ Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    // 2. คำนวณข้าม (skip) ตามสูตร: (หน้าปัจจุบัน - 1) * จำนวนต่อหน้า
+    const skip = (page - 1) * limit;
+
+    // 3. ดึงข้อมูลพร้อมทำ Pagination และนับจำนวนทั้งหมด
+    // ใช้ Promise.all เพื่อรันคำสั่งพร้อมกันเพื่อความรวดเร็ว
+    const [books, totalItems] = await Promise.all([
+      Book.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Book.countDocuments()
+    ]);
+
+    // 4. คำนวณจำนวนหน้าทั้งหมด
+    const totalPages = Math.ceil(totalItems / limit);
+
     return res.status(200).json({
       success: true,
       data: books,
+      totalPages: totalPages,
+      currentPage: page,
+      totalItems: totalItems
     });
   } catch (error) {
-    // error.name = error.name || "DatabaseError";
-    // error.status = 500;
     return next(error);
   }
 };
@@ -46,6 +64,7 @@ export const deleteBook2 = async (req, res, next) => {
 
     if (!deleted) {
       const error = new Error("Book not found");
+      error.status = 404;
       return next(error);
     }
 
@@ -72,19 +91,11 @@ export const createBook2 = async (req, res, next) => {
   try {
     const doc = await Book.create({ title, author, year, genre });
 
-    const safe = doc.toObject();
-    delete safe.password;
-
     return res.status(201).json({
       success: true,
-      data: safe,
+      data: doc,
     });
   } catch (error) {
-    if (error.code === 11000) {
-      error.status = 409;
-      error.name = "DuplicateKeyError";
-      error.message = "Email already in use";
-    }
     error.status = 500;
     error.name = error.name || "DatabaseError";
     error.message = error.message || "Failed to create a book";
@@ -95,30 +106,23 @@ export const createBook2 = async (req, res, next) => {
 // ✅ route handler: update a book in the database
 export const updateBook2 = async (req, res, next) => {
   const { id } = req.params;
-
   const body = req.body;
 
   try {
-    const updated = await Book.findByIdAndUpdate(id, body);
+    const updated = await Book.findByIdAndUpdate(id, body, { new: true});
 
     if (!updated) {
       const error = new Error("Book not found...");
-
+      error.status = 404;
       return next(error);
     }
-
-    const safe = updated.toObject();
-    delete safe.password;
 
     return res.status(200).json({
       success: true,
-      data: safe,
+      data: updated,
     });
   } catch (error) {
-    if (error.code === 11000) {
       return next(error);
-    }
-    return next(error);
   }
 };
 
