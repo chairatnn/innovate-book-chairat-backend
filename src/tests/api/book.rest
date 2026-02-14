@@ -1,0 +1,32 @@
+### GET request to read all books
+GET http://localhost:3000/api/v2/books
+
+### POST request to create a new book 
+POST http://localhost:3000/api/v2/books
+Content-Type: application/json
+
+{
+    "title": "Book99",
+    "author": "Person99",
+    "year": "1999",
+    "genre": "Tech"
+}
+
+### DELETE request to delete a book
+DELETE http://localhost:3000/api/v2/books/699026ed3f21e6f571ed464e
+
+### POST Login a user
+POST  http://localhost:3000/api/v2/users/auth/cookie/login
+Content-Type: application/json
+
+{
+    "email": "ai14@example.com", 
+    "password": "12345678"
+}
+
+### POST Logout a user
+POST http://localhost:3000/api/v2/users/auth/cookie/logout
+
+### GET check user authentication 
+GET http://localhost:3000/api/v2/users/auth/cookie/me
+

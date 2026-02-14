@@ -17,7 +17,6 @@ const bookSchema = new mongoose.Schema(
     year: {
       type: Number,
       required: [true, "กรุณากรอกปีที่พิมพ์"],
-      // หมายเหตุ: Number ไม่รองรับ trim: true
     },
     genre: {
       type: String,
