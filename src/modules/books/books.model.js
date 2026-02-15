@@ -20,13 +20,21 @@ const bookSchema = new mongoose.Schema(
       // 1. ตรวจสอบค่าบวก (ต้องไม่น้อยกว่า 1)
       min: [1, "ปีที่พิมพ์ต้องเป็นค่าบวกเท่านั้น"],
       // 2. ตรวจสอบว่าต้องไม่เกินปีปัจจุบัน
-      validate: {
-        validator: function(value) {
-          const currentYear = new Date().getFullYear();
-          return value <= currentYear;
+      validate: [
+        {
+          validator: function(value) {
+            // เช็คว่าเป็นเลขจำนวนเต็มหรือไม่
+            return Number.isInteger(value);
+          },
+          message: "ปีที่พิมพ์ต้องเป็นเลขจำนวนเต็มเท่านั้น (ห้ามมีทศนิยม)"
         },
-        message: props => `ปีที่พิมพ์ (${props.value}) ต้องไม่เกินปีปัจจุบัน (${new Date().getFullYear()})`
-      }
+        {
+          validator: function(value) {
+            return value <= new Date().getFullYear();
+          },
+          message: props => `ปีที่พิมพ์ (${props.value}) ต้องไม่เกินปีปัจจุบัน`
+        }
+      ]
     },
     genre: {
       type: String,
